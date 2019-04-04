@@ -1,0 +1,70 @@
+version: '3.4'
+
+services:
+
+  # REF: https://hub.docker.com/r/arm32v7/wordpress
+  wordpress-server:
+    image: arm32v7/wordpress:5.1.1-php7.3
+    hostname: wordpress-server
+    environment:
+      - WORDPRESS_DB_HOST=wordpress-mysql
+      - WORDPRESS_DB_USER=root
+      - WORDPRESS_DB_PASSWORD=SetThisToSomethingStrong!
+      - WORDPRESS_DB_NAME=wordpress
+      - WORDPRESS_DEBUG=0
+    # volumes:
+    #   - type: bind
+    #     source: /opt/wordpress/var/www/html/wp-content/themes
+    #     target: /var/www/html/wp-content/themes
+    #   - type: bind
+    #     source: /opt/wordpress/var/www/html/wp-content/plugins
+    #     target: /var/www/html/wp-content/plugins
+    networks:
+      - wordpress-net1
+    ports:
+      - mode: host
+        target: 80
+        published: 8080
+    deploy:
+      labels:
+        local.description: "WordPress"
+      restart_policy:
+        condition: on-failure
+
+  # # REF: https://hub.docker.com/r/arm32v7/wordpress
+  # wordpres-wpcli:
+  #   image: arm32v7/wordpress:cli
+  #   hostname: wordpress-wpcli
+  #   networks:
+  #     - wordpress-net1
+  #   deploy:
+  #     labels:
+  #       local.description: "WordPress WP-CLI"
+  #     restart_policy:
+  #       condition: on-failure
+
+  # REF: https://github.com/ernestgwilsonii/docker-raspberry-pi-mariadb
+  wordpress-mysql:
+    image: ernestgwilsonii/docker-raspberry-pi-mariadb:10.1.37
+    hostname: wordpress-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=SetThisToSomethingStrong!
+      - MYSQL_DATABASE=wordpress
+    volumes:
+      - type: bind
+        source: /opt/mysql/var/lib/mysql
+        target: /var/lib/mysql
+    networks:
+      - wordpress-net1
+    ports:
+      - mode: host
+        target: 3306
+        published: 3306
+    deploy:
+      labels:
+        local.description: "MySQL for WordPress"
+      restart_policy:
+        condition: on-failure
+
+networks:
+  wordpress-net1:
